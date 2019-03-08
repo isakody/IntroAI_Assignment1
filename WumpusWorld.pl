@@ -8,19 +8,17 @@ mapSize(5).
 gold(5,5).
 agent(1,1).
 wumpus(5,4).
-wumpusAlive(true).
 pit(3,1). 
 pit(1,5).
 pit(4,2).
 
 
 play :-
-    resetGame(),
     format("THE GAME STARTS~n~n"),
     format("With this board:~n"),
-    printMap([]),
+    printMap([], true),
     agent(X, Y),
-    checkCell(X, Y, [], []).
+    checkCell(X, Y, [], [], true).
 
 % check cell %
 /*  check if there is the gold, 
@@ -30,27 +28,27 @@ play :-
     * kill wumpus if its near.
     if everything good then move.
 */
-checkCell(X, Y, VisitedList, MoveList) :-
+checkCell(X, Y, VisitedList, MoveList, WumpusAlive) :-
     (glitter(X, Y) ->
         % if gold is found, print the board and the moves.
-        (   printMap(VisitedList), 
+        (   printMap(VisitedList, WumpusAlive), 
             print(MoveList), 
             format('~n'),
             printScore(MoveList),
-            printWumpusKilled()
+            printWumpusKilled(WumpusAlive)
         ); 
         % if not, add cell to visited list and move.
         (   \+member((X,Y), VisitedList),   % cell not visited
             \+breeze(X,Y),                  % no pit near
-            (stench(X,Y) -> 
+            (stench(X,Y, WumpusAlive) -> 
                 % if wumpus near, shoot arrow and kill it, then move.
                 (   shoot(X,Y),
                     append([(X,Y)], VisitedList, NewVisitedList),
-                    move(X,Y,NewVisitedList, MoveList)
+                    move(X,Y, NewVisitedList, MoveList, false)
                 );
                 % if no wumpus near, add cell to visited list and move.  
                 (   append([(X,Y)], VisitedList, NewVisitedList),
-                    move(X,Y,NewVisitedList, MoveList)
+                    move(X,Y, NewVisitedList, MoveList, WumpusAlive)
                 )
             )
         )
@@ -65,29 +63,29 @@ checkCell(X, Y, VisitedList, MoveList) :-
 */
 
 % Right
-move(X, Y, VisitedList, MoveList) :-
+move(X, Y, VisitedList, MoveList, WumpusAlive) :-
     NewY is Y + 1, mapSize(MapSize), NewY =< MapSize, 
     append(MoveList, ["right"], NewMoveList),
-    checkCell(X, NewY, VisitedList, NewMoveList).
+    checkCell(X, NewY, VisitedList, NewMoveList, WumpusAlive).
 
 % Up
-move(X, Y, VisitedList, MoveList) :-
+move(X, Y, VisitedList, MoveList, WumpusAlive) :-
     NewX is X + 1, mapSize(Size), NewX =< Size, 
     append(MoveList, ["up"], NewMoveList), 
-    checkCell(NewX, Y, VisitedList, NewMoveList).  
+    checkCell(NewX, Y, VisitedList, NewMoveList, WumpusAlive).  
     
 
 % Left
-move(X, Y, VisitedList, MoveList) :-
+move(X, Y, VisitedList, MoveList, WumpusAlive) :-
     NewY is Y - 1, NewY > 0,    
     append(MoveList, ["left"], NewMoveList),
-    checkCell(X, NewY, VisitedList, NewMoveList).
+    checkCell(X, NewY, VisitedList, NewMoveList, WumpusAlive).
 
 % Down
-move(X, Y, VisitedList, MoveList) :-
+move(X, Y, VisitedList, MoveList, WumpusAlive) :-
     NewX is X - 1, NewX > 0,    
     append(MoveList, ["down"], NewMoveList),
-    checkCell(NewX, Y, VisitedList, NewMoveList).
+    checkCell(NewX, Y, VisitedList, NewMoveList, WumpusAlive).
 
 
 
@@ -142,41 +140,34 @@ breeze(X,Y) :-
     (pit(Right,Y); pit(Left,Y); pit(X,Up); pit(X,Down)).
 
 % if the player is near the wumpus
-stench(X,Y) :-
-    wumpusAlive(true),
+stench(X,Y, WumpusAlive) :-
+ WumpusAlive,
     Right is X + 1,
     Left is X - 1,
     Up is Y + 1,
     Down is Y - 1,
     (wumpus(Right,Y); wumpus(Left,Y); wumpus(X,Up); wumpus(X,Down)).
 
-
-    %%% AUX %%%
-resetGame() :-
-    retractall(wumpusAlive(_)),
-    assertz(wumpusAlive(true)).
-
-
     %%% OUTPUT %%%
 
 % printMap prints the board.
-printMap(VisitedList) :-
+printMap(VisitedList, WumpusAlive) :-
     mapSize(N),
-    printMapRows(N, VisitedList).
+    printMapRows(N, VisitedList, WumpusAlive).
 
 % printMapRows recursively prints all rows from 5 to 1 (top to bottom).
-printMapRows(CurrentRow, VisitedList) :-
-    printMapCols(CurrentRow, 1, VisitedList),
+printMapRows(CurrentRow, VisitedList, WumpusAlive) :-
+    printMapCols(CurrentRow, 1, VisitedList, WumpusAlive),
     NewRow is CurrentRow - 1,
-    NewRow >= 1 -> printMapRows(NewRow, VisitedList);
+    NewRow >= 1 -> printMapRows(NewRow, VisitedList, WumpusAlive);
     format('~n').
 
 % printMapCols recursively prints all columns from 1 to 5 (left to right).
-printMapCols(CurrentRow, CurrentColumn, VisitedList) :-
-    printMapCell(CurrentRow, CurrentColumn, VisitedList),
+printMapCols(CurrentRow, CurrentColumn, VisitedList, WumpusAlive) :-
+    printMapCell(CurrentRow, CurrentColumn, VisitedList, WumpusAlive),
     NewColumn is CurrentColumn + 1,
     mapSize(Y), 
-    NewColumn =< Y -> printMapCols(CurrentRow, NewColumn, VisitedList); 
+    NewColumn =< Y -> printMapCols(CurrentRow, NewColumn, VisitedList, WumpusAlive); 
     format('~n'). 
 
 % printMapCell prints the cell
@@ -184,9 +175,9 @@ printMapCols(CurrentRow, CurrentColumn, VisitedList) :-
     * W for alive wumpus.   * X for dead wumpus.
     * _ for empty space.    * O for player's path.
 */
-printMapCell(CurrentX, CurrentY, VisitedList) :-
+printMapCell(CurrentX, CurrentY, VisitedList, WumpusAlive) :-
     wumpus(CurrentX, CurrentY) ->  
-        (wumpusAlive(true) -> 
+        (WumpusAlive -> 
             format("W ");
             (member((CurrentX, CurrentY), VisitedList) ->
                 format("% ");
@@ -205,7 +196,7 @@ printScore(MoveList) :-
     format(" moves."),
     format('~n').
 
-printWumpusKilled() :-
-    wumpusAlive(true) ->
+printWumpusKilled(WumpusAlive) :-
+    WumpusAlive ->
         format("Wumpus was not killed by the player.");
         format("Wumpus was killed by the player.").
