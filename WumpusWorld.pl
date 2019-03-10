@@ -25,7 +25,7 @@ checkCell(X, Y, VisitedList, MoveList, WumpusAlive) :-
     (glitter(X, Y) ->
         % if gold is found, print the board, the moves and the status of Wumpus.
         (   printMap(VisitedList, WumpusAlive), 
-            print(MoveList), format('~n'),
+            print(MoveList), nl,
             printScore(MoveList),
             printWumpusKilled(WumpusAlive)
         ); 
@@ -140,7 +140,7 @@ printMapRows(CurrentRow, VisitedList, WumpusAlive) :-
     printMapCols(CurrentRow, 1, VisitedList, WumpusAlive),
     NewRow is CurrentRow - 1,
     NewRow >= 1 -> printMapRows(NewRow, VisitedList, WumpusAlive);
-    format('~n').
+    nl.
 
 % printMapCols recursively prints all columns from 1 to 5 (left to right).
 printMapCols(CurrentRow, CurrentColumn, VisitedList, WumpusAlive) :-
@@ -148,7 +148,7 @@ printMapCols(CurrentRow, CurrentColumn, VisitedList, WumpusAlive) :-
     NewColumn is CurrentColumn + 1,
     mapSize(Y), 
     NewColumn =< Y -> printMapCols(CurrentRow, NewColumn, VisitedList, WumpusAlive); 
-    format('~n'). 
+    nl. 
 
 % printMapCell prints the cell
 /*  * P -> pit.     * W -> alive wumpus.    * _ -> empty space.    * O -> player's path.
@@ -173,7 +173,7 @@ printScore(MoveList) :-
     format("The player found the gold in "),
     format(N),
     format(" moves."),
-    format('~n').
+    nl.
 
 printWumpusKilled(WumpusAlive) :-
     WumpusAlive ->
