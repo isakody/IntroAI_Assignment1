@@ -6,7 +6,7 @@ Grade: 20/20.
 ## Introduction
 The prolog file is called WumpusWorld.pl, and to execute the code one has to load the file with Swipl and query “play”. It plays on a 5x5 board and the examples following are also in a 5x5 board. However, the size of the board can be changed, but the number of pits has to be increased in order to reduce the number of possible paths. \
 Once the query is executed, the program will print the board and the first solution (if there is at least one). Each solution will print the board with the path taken by the player, the list of moves and the number of moves the player did. It also prints if the Wumpus was killed or not. The program is capable of printing all possible paths. \
-The agent is a very safe player, they would avoid pits when the breeze is perceived. During early development, they avoided the Wumpus too but afterwards, they would shoot to all directions to kill the Wumpus. The player never dies before backtracking. \
+The agent is a very safe player, they would avoid pits when the breeze is perceived. During early development, they avoided the Wumpus too but afterwards, they would shoot to all directions to kill the Wumpus. The player never dies before backtracking. 
 
 Before starting, I would like to explain what the symbols on the board mean in table 1.1.
 
